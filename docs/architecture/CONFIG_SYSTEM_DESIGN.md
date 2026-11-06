@@ -217,9 +217,9 @@ environment, and none of them overrides a value in the file.
 | `MEMDOOR_PORT` | the service's port for the installer and the ssh door; the binary itself takes `--port` (18789) | `scripts/install.sh`, `cmd/cli/cmd/gateway_ssh.go` |
 | `MEMDOOR_GATEWAY` | the address the CLI and TUI dial: a URL, `host:port`, a bare host, or `ssh://[user@]box[:port]`; `--gateway` wins | `cmd/cli/cmd/root.go` |
 | `MEMDOOR_REMOTE_URL` | remote-control relay; default `http://localhost:18789`, independent of telemetry and account services | `cmd/cli/cmd/tui_remote.go` |
-| `MEMDOOR_DISTRIBUTION_URL` | installer, checksums and upgrade files; default `http://localhost:18789` | `scripts/install.sh`, `scripts/install.ps1`, `cmd/cli/cmd/upgrade.go` |
-| `MEMDOOR_INSTALL_SOURCE` | set to `github` to install and upgrade from GitHub Releases; otherwise use the distribution URL | installers, `cmd/cli/cmd/upgrade.go` |
-| `MEMDOOR_GITHUB_REPOSITORY` | GitHub release repository; default `guregodevo/memdoor` | installers, `cmd/cli/cmd/upgrade.go` |
+| `MEMDOOR_DISTRIBUTION_URL` | self-hosted installer, checksum and upgrade files; used when install source is `local`, default `http://localhost:18789` | `scripts/install.sh`, `scripts/install.ps1`, `cmd/cli/cmd/upgrade.go` |
+| `MEMDOOR_INSTALL_SOURCE` | install and upgrade source; default `github`, set to `local` for the distribution URL | installers, `cmd/cli/cmd/upgrade.go` |
+| `MEMDOOR_GITHUB_REPOSITORY` | GitHub release repository; default `Erro7/memdoor` | installers, `cmd/cli/cmd/upgrade.go` |
 | `MEMDOOR_GITHUB_RELEASE` | GitHub release tag; default `latest` | installers, `cmd/cli/cmd/upgrade.go` |
 | `MEMDOOR_WORKSPACE` | the workspace slug, second in the resolution chain | `cmd/cli/cmd/workspace_discovery.go` |
 | `MEMDOOR_APPROVE` | approval mode (`changes` asks before bash, writes and MCP tools); wins over the `approve` setting | `gateway/approval.go` |

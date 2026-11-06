@@ -33,8 +33,7 @@ a provider on your key.
 On this machine:
 
 ```bash
-curl -fsSL https://github.com/guregodevo/memdoor/releases/latest/download/install.sh \
-  | MEMDOOR_INSTALL_SOURCE=github bash
+curl -fsSL https://github.com/Erro7/memdoor/releases/latest/download/install.sh | bash
 export OPENROUTER_API_KEY=sk-or-...    # or ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, …
 # or no key: memdoor connect local    # janis and an open-weight model on this machine — https://memdoor.ai/docs/open-weight
 cd your-project && memdoor             # the first run sets the machine up
@@ -45,8 +44,7 @@ The install or the first run did not finish: [open an Install issue](https://git
 On a box reachable by ssh, nothing installed there:
 
 ```bash
-curl -fsSL https://github.com/guregodevo/memdoor/releases/latest/download/install.sh \
-  | MEMDOOR_INSTALL_SOURCE=github bash                   # here, once
+curl -fsSL https://github.com/Erro7/memdoor/releases/latest/download/install.sh | bash # here, once
 memdoor --gateway ssh://you@box                           # installs memdoor on the box, starts its gateway, opens the window on it
 memdoor --gateway ssh://you@box connect openrouter        # your key, kept on the box; every turn there runs on it
 memdoor --gateway ssh://you@box run "fix the failing test" # the same box from a script or CI
@@ -237,9 +235,8 @@ curl -fsSL https://github.com/OWNER/REPO/releases/download/v1.2.3/install.sh \
 On Windows PowerShell:
 
 ```powershell
-$env:MEMDOOR_INSTALL_SOURCE='github'
-$env:MEMDOOR_GITHUB_REPOSITORY='guregodevo/memdoor'
-irm https://github.com/guregodevo/memdoor/releases/latest/download/install.ps1 | iex
+$env:MEMDOOR_GITHUB_REPOSITORY='Erro7/memdoor'
+irm https://github.com/Erro7/memdoor/releases/latest/download/install.ps1 | iex
 ```
 
 Keep `MEMDOOR_INSTALL_SOURCE=github` in the environment when running

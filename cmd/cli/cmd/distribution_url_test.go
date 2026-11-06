@@ -2,23 +2,22 @@ package cmd
 
 import "testing"
 
-func TestDistributionURLsUseLocalHostByDefault(t *testing.T) {
+func TestDistributionURLsUseGitHubByDefault(t *testing.T) {
 	t.Setenv("MEMDOOR_INSTALL_SOURCE", "")
 	t.Setenv("MEMDOOR_DISTRIBUTION_URL", "")
+	t.Setenv("MEMDOOR_GITHUB_REPOSITORY", "")
+	t.Setenv("MEMDOOR_GITHUB_RELEASE", "")
 
-	if got, want := distributionBaseURL(), "http://localhost:18789"; got != want {
-		t.Fatalf("distributionBaseURL() = %q, want %q", got, want)
-	}
-	if got, want := versionEndpointURL(), "http://localhost:18789/dl/VERSION"; got != want {
+	if got, want := versionEndpointURL(), "https://github.com/Erro7/memdoor/releases/latest/download/VERSION"; got != want {
 		t.Fatalf("versionEndpointURL() = %q, want %q", got, want)
 	}
-	if got, want := installScriptURL(), "http://localhost:18789/install.sh"; got != want {
+	if got, want := installScriptURL(), "https://github.com/Erro7/memdoor/releases/latest/download/install.sh"; got != want {
 		t.Fatalf("installScriptURL() = %q, want %q", got, want)
 	}
 }
 
 func TestDistributionURLsUseEnvironmentHost(t *testing.T) {
-	t.Setenv("MEMDOOR_INSTALL_SOURCE", "")
+	t.Setenv("MEMDOOR_INSTALL_SOURCE", "local")
 	t.Setenv("MEMDOOR_DISTRIBUTION_URL", " https://downloads.example.test/memdoor/ ")
 
 	if got, want := versionEndpointURL(), "https://downloads.example.test/memdoor/dl/VERSION"; got != want {
