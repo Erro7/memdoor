@@ -1,6 +1,7 @@
 #!/bin/sh
 # Memdoor CLI installer.
-# Usage: curl -fsSL https://memdoor.ai/install.sh | bash
+# Usage from GitHub Releases:
+#   curl -fsSL https://github.com/guregodevo/memdoor/releases/latest/download/install.sh | MEMDOOR_INSTALL_SOURCE=github bash
 #        make install   (from a clone: builds, then this script installs that binary)
 #
 # What it does:
@@ -10,7 +11,7 @@
 #
 # From "I heard about this" to the coder editing my code:
 #
-#   curl -fsSL https://memdoor.ai/install.sh | bash   # drops the binary
+#   curl -fsSL https://github.com/guregodevo/memdoor/releases/latest/download/install.sh | MEMDOOR_INSTALL_SOURCE=github bash
 #   export OPENROUTER_API_KEY=sk-or-...               # optional: any provider's key
 #   cd <project> && memdoor                           # the first run sets the machine up; no key: it finds one, or signs in
 #
@@ -39,7 +40,20 @@ case "${OS}-${ARCH}" in
         ;;
 esac
 
-URL="https://memdoor.ai/dl/memdoor-${OS}-${ARCH}"
+if [ "${MEMDOOR_INSTALL_SOURCE:-local}" = "github" ]; then
+    GITHUB_REPOSITORY="${MEMDOOR_GITHUB_REPOSITORY:-guregodevo/memdoor}"
+    GITHUB_RELEASE="${MEMDOOR_GITHUB_RELEASE:-latest}"
+    if [ "$GITHUB_RELEASE" = "latest" ]; then
+        ASSET_BASE="https://github.com/$GITHUB_REPOSITORY/releases/latest/download"
+    else
+        ASSET_BASE="https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_RELEASE"
+    fi
+else
+    DIST_BASE="${MEMDOOR_DISTRIBUTION_URL:-http://localhost:18789}"
+    DIST_BASE=${DIST_BASE%/}
+    ASSET_BASE="$DIST_BASE/dl"
+fi
+URL="$ASSET_BASE/memdoor-${OS}-${ARCH}"
 # Our own test runs mark their download, so adoption counts people only
 # (make metrics drops ?ci=1): every publish installs on three CI runners,
 # and on 2026-10-07 those were every download the logs held.
@@ -207,7 +221,7 @@ fi
 # match, we refuse to install. No silent skip.
 #
 # macOS ships `shasum` (Perl) in /usr/bin; Linux ships `sha256sum` (coreutils).
-SUMS_URL="https://memdoor.ai/dl/SHA256SUMS"
+SUMS_URL="$ASSET_BASE/SHA256SUMS"
 sha256_of() {
     # $1 = file path; prints the lowercase hex digest only.
     if command -v sha256sum >/dev/null 2>&1; then
@@ -322,7 +336,7 @@ case "$INSTALL_MODE" in
         # it is not one, before the download, not as mkdir's own error after.
         if ! mkdir -p "$DEST_DIR" 2>/dev/null || [ ! -w "$DEST_DIR" ]; then
             echo "ERROR: cannot write to $DEST_DIR." >&2
-            echo "  Pick a directory you own: MEMDOOR_PREFIX=\$HOME/bin curl -fsSL https://memdoor.ai/install.sh | bash" >&2
+            echo "  Pick a directory you own with MEMDOOR_PREFIX=\$HOME/bin and run the installer again." >&2
             exit 1
         fi
         fetch_binary "$TMP_DEST"

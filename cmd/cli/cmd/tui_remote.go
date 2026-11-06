@@ -63,7 +63,7 @@ func remoteURL() string {
 	if v := strings.TrimSpace(os.Getenv("MEMDOOR_REMOTE_URL")); v != "" && shared.AccountHostTrusted(v) {
 		return strings.TrimRight(v, "/")
 	}
-	return "https://memdoor.ai"
+	return "http://localhost:18789"
 }
 
 // remoteRelayReconnectWait is the pause between reconnect attempts: the

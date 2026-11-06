@@ -2,6 +2,7 @@ package telemetry
 
 import (
 	"os"
+	"strings"
 
 	"memdoor/gateway/logs"
 )
@@ -16,9 +17,8 @@ type Config struct {
 	// — zero per-event cost.
 	Enabled bool
 
-	// Endpoint is the URL the flusher POSTs to. Defaults to the
-	// production memdoor.ai monitoring endpoint; self-hosted
-	// monitoring or local testing overrides via env.
+	// Endpoint is the URL the flusher POSTs to. Defaults to the local
+	// gateway; a deployed monitoring receiver overrides it via env.
 	Endpoint string
 
 	// BearerToken authenticates the POST request to deter random
@@ -37,10 +37,10 @@ type Config struct {
 	RingCapacity int
 }
 
-// EndpointDefault is the production monitoring URL. Surfaced as a
+// EndpointDefault is the local monitoring URL. Surfaced as a
 // package-level constant so tests can compare against the same
 // value without duplicating the literal.
-const EndpointDefault = "https://memdoor.ai/api/telemetry"
+const EndpointDefault = "http://localhost:18789/api/telemetry"
 
 // LoadConfig reads the MEMDOOR_TELEMETRY_* env vars and returns the
 // resolved Config. Unset vars use the defaults documented above.
@@ -48,11 +48,12 @@ const EndpointDefault = "https://memdoor.ai/api/telemetry"
 // Env variable contract:
 //
 //	MEMDOOR_TELEMETRY_ENABLED       "1" / "true" → enabled; anything else → off
+//	MEMDOOR_TELEMETRY_URL           receiver URL; defaults to the local gateway
 //	MEMDOOR_TELEMETRY_TOKEN         bearer token; empty allowed
 func LoadConfig() Config {
 	cfg := Config{
 		Enabled:      envBool("MEMDOOR_TELEMETRY_ENABLED"),
-		Endpoint:     EndpointDefault,
+		Endpoint:     envOrDefault("MEMDOOR_TELEMETRY_URL", EndpointDefault),
 		BearerToken:  os.Getenv("MEMDOOR_TELEMETRY_TOKEN"),
 		MinLevel:     logs.LevelWarn,
 		RingCapacity: 200,
@@ -67,4 +68,11 @@ func envBool(key string) bool {
 	default:
 		return false
 	}
+}
+
+func envOrDefault(key, fallback string) string {
+	if value := strings.TrimSpace(os.Getenv(key)); value != "" {
+		return strings.TrimRight(value, "/")
+	}
+	return fallback
 }

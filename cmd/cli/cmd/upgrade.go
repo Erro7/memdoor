@@ -1,5 +1,5 @@
-// `memdoor upgrade` — check memdoor.ai/dl/VERSION, compare to the
-// version baked into this binary, run install.sh if newer.
+// `memdoor upgrade` checks the configured release source, compares it to the
+// version baked into this binary, and runs its installer when newer.
 //
 // Why a thin wrapper around install.sh rather than re-implementing
 // the swap logic here: scripts/install.sh already owns the gnarly
@@ -23,27 +23,51 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// versionEndpoint is the canonical place deploy.sh publishes the
-// git-describe of the latest production build. Plain text, one line,
-// no trailing whitespace. Kept as a var (not const) so tests / staging
-// can override without recompiling.
-var versionEndpoint = "https://memdoor.ai/dl/VERSION"
+// versionEndpointOverride lets tests replace the configured VERSION asset.
+var versionEndpointOverride string
 
 // installScriptURL is the curl|bash entrypoint install.sh publishes
 // to. Same script handles fresh-install and upgrade-in-place (see
 // scripts/install.sh, the "Upgrade-in-place" block).
-var installScriptURL = "https://memdoor.ai/install.sh"
+func distributionBaseURL() string {
+	if base := strings.TrimSpace(os.Getenv("MEMDOOR_DISTRIBUTION_URL")); base != "" {
+		return strings.TrimRight(base, "/")
+	}
+	return "http://localhost:18789"
+}
+
+func versionEndpointURL() string {
+	if versionEndpointOverride != "" {
+		return versionEndpointOverride
+	}
+	if useGitHubReleases() {
+		return githubReleaseBaseURL() + "/VERSION"
+	}
+	return distributionBaseURL() + "/dl/VERSION"
+}
+
+func installScriptURL() string {
+	if useGitHubReleases() {
+		return githubReleaseBaseURL() + "/install.sh"
+	}
+	return distributionBaseURL() + "/install.sh"
+}
 
 // installScriptURLWindows is the PowerShell installer the Windows binary
 // hands itself to on upgrade.
-var installScriptURLWindows = "https://memdoor.ai/install.ps1"
+func installScriptURLWindows() string {
+	if useGitHubReleases() {
+		return githubReleaseBaseURL() + "/install.ps1"
+	}
+	return distributionBaseURL() + "/install.ps1"
+}
 
 // installerLine is the one-liner the installer runs as on this machine.
 func installerLine() string {
 	if runtime.GOOS == "windows" {
-		return "irm " + installScriptURLWindows + " | iex"
+		return "irm " + installScriptURLWindows() + " | iex"
 	}
-	return "curl -fsSL " + installScriptURL + " | bash"
+	return "curl -fsSL " + installScriptURL() + " | bash"
 }
 
 // installerCommand is that line in the shell it belongs to: PowerShell on
@@ -57,10 +81,9 @@ func installerCommand() *exec.Cmd {
 
 var upgradeCmd = &cobra.Command{
 	Use:   "upgrade",
-	Short: "Check for a newer memdoor build and install it via memdoor.ai/install.sh",
+	Short: "Check for a newer memdoor build and install it",
 	Long: `Compares the version in this binary (memdoor version) with the latest
-published build (memdoor.ai/dl/VERSION). When a newer one exists it runs
-memdoor.ai/install.sh, the same upgrade in place the installer does: the
+published build. When a newer one exists it runs the configured installer: the
 running gateway is stopped, the binary swapped, the gateway started again.
 
   memdoor upgrade            ask, then upgrade
@@ -74,7 +97,7 @@ running gateway is stopped, the binary swapped, the gateway started again.
 
 		remote, err := fetchRemoteVersion()
 		if err != nil {
-			return fmt.Errorf("fetch %s: %w", versionEndpoint, err)
+			return fmt.Errorf("fetch %s: %w", versionEndpointURL(), err)
 		}
 		local := Version
 
@@ -147,7 +170,7 @@ func fetchRemoteVersion() (string, error) { return fetchRemoteVersionFrom("", 10
 // marked and left out (#90). Nothing about the person is sent.
 func fetchRemoteVersionFrom(from string, timeout time.Duration) (string, error) {
 	client := &http.Client{Timeout: timeout}
-	u := versionEndpoint
+	u := versionEndpointURL()
 	if from != "" {
 		u += "?from=" + from
 	}
@@ -175,4 +198,20 @@ func init() {
 	upgradeCmd.Flags().Bool("force", false, "Run the installer even when local matches remote")
 	upgradeCmd.Flags().Bool("yes", false, "Skip the interactive confirm before running the installer")
 	rootCmd.AddCommand(upgradeCmd)
+}
+
+func githubReleaseBaseURL() string {
+	repository := strings.TrimSpace(os.Getenv("MEMDOOR_GITHUB_REPOSITORY"))
+	if repository == "" {
+		repository = "guregodevo/memdoor"
+	}
+	release := strings.TrimSpace(os.Getenv("MEMDOOR_GITHUB_RELEASE"))
+	if release == "" || release == "latest" {
+		return "https://github.com/" + repository + "/releases/latest/download"
+	}
+	return "https://github.com/" + repository + "/releases/download/" + release
+}
+
+func useGitHubReleases() bool {
+	return strings.EqualFold(strings.TrimSpace(os.Getenv("MEMDOOR_INSTALL_SOURCE")), "github")
 }

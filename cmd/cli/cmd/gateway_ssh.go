@@ -280,14 +280,15 @@ func sshBoxSetup(target, sshPort, gatewayPort string) error {
 	}
 	bin := find()
 	if bin == "" {
-		say("%s has no memdoor: installing it there from %s (~/.local/bin, no sudo)", target, installScriptURL)
+		installer := installScriptURL()
+		say("%s has no memdoor: installing it there from %s (~/.local/bin, no sudo)", target, installer)
 		// MEMDOOR_PORT: the installer's upgrade-in-place block looks for a
 		// running gateway on that port and restarts it on the new binary;
 		// pointed at the door's port it touches only the gateway this door
 		// is for (2026-10-24: run against a scratch box on the developer's
 		// own machine, it found the developer's gateway on 18789 and
 		// restarted it under the scratch home).
-		if _, err := sshRun(target, sshPort, "curl -fsSL "+installScriptURL+" | MEMDOOR_PORT="+gatewayPort+" bash"); err != nil {
+		if _, err := sshRun(target, sshPort, "curl -fsSL "+installer+" | MEMDOOR_PORT="+gatewayPort+" bash"); err != nil {
 			return fmt.Errorf("installing memdoor on %s: %v", target, err)
 		}
 		if bin = find(); bin == "" {

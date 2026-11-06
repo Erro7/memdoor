@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"os"
+	"strings"
 
 	"memdoor/pkg/shared"
 )
@@ -12,8 +13,10 @@ import (
 // seat decisions (2026-10-04: a seat never supplies a key). Overridable only
 // for memdoor.ai or this machine.
 func brokerBaseURL() string {
-	if base := os.Getenv("MEMDOOR_BILLING_URL"); base != "" && shared.AccountHostTrusted(base) {
-		return base
+	for _, key := range []string{"MEMDOOR_ACCOUNT_URL", "MEMDOOR_BILLING_URL"} {
+		if base := strings.TrimSpace(os.Getenv(key)); base != "" && shared.AccountHostTrusted(base) {
+			return strings.TrimRight(base, "/")
+		}
 	}
-	return "https://memdoor.ai/billing"
+	return "http://localhost:18790"
 }

@@ -424,8 +424,14 @@ func TestRemoteLinkNeedsAccount(t *testing.T) {
 	}
 }
 
-// The relay host is data: memdoor.ai by default, overridable for testing a
-// local gateway.
+// The relay host is local by default and independently overridable.
+func TestRemoteURLDefaultsToLocalGateway(t *testing.T) {
+	t.Setenv("MEMDOOR_REMOTE_URL", "")
+	if got, want := remoteURL(), "http://localhost:18789"; got != want {
+		t.Fatalf("remoteURL() = %q, want %q", got, want)
+	}
+}
+
 func TestRemoteURLOverride(t *testing.T) {
 	t.Setenv("MEMDOOR_REMOTE_URL", "http://127.0.0.1:9/")
 	if got, want := remoteURL(), "http://127.0.0.1:9"; got != want {

@@ -216,12 +216,19 @@ environment, and none of them overrides a value in the file.
 | `MEMDOOR_HOST` | the address the gateway binds; default `0.0.0.0`, `localhost` keeps it to the machine; `--host` wins | `cmd/cli/cmd/gateway.go` |
 | `MEMDOOR_PORT` | the service's port for the installer and the ssh door; the binary itself takes `--port` (18789) | `scripts/install.sh`, `cmd/cli/cmd/gateway_ssh.go` |
 | `MEMDOOR_GATEWAY` | the address the CLI and TUI dial: a URL, `host:port`, a bare host, or `ssh://[user@]box[:port]`; `--gateway` wins | `cmd/cli/cmd/root.go` |
+| `MEMDOOR_REMOTE_URL` | remote-control relay; default `http://localhost:18789`, independent of telemetry and account services | `cmd/cli/cmd/tui_remote.go` |
+| `MEMDOOR_DISTRIBUTION_URL` | installer, checksums and upgrade files; default `http://localhost:18789` | `scripts/install.sh`, `scripts/install.ps1`, `cmd/cli/cmd/upgrade.go` |
+| `MEMDOOR_INSTALL_SOURCE` | set to `github` to install and upgrade from GitHub Releases; otherwise use the distribution URL | installers, `cmd/cli/cmd/upgrade.go` |
+| `MEMDOOR_GITHUB_REPOSITORY` | GitHub release repository; default `guregodevo/memdoor` | installers, `cmd/cli/cmd/upgrade.go` |
+| `MEMDOOR_GITHUB_RELEASE` | GitHub release tag; default `latest` | installers, `cmd/cli/cmd/upgrade.go` |
 | `MEMDOOR_WORKSPACE` | the workspace slug, second in the resolution chain | `cmd/cli/cmd/workspace_discovery.go` |
 | `MEMDOOR_APPROVE` | approval mode (`changes` asks before bash, writes and MCP tools); wins over the `approve` setting | `gateway/approval.go` |
 | `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `AI_GATEWAY_BASE_URL` with `*_AI_GATEWAY_TOKEN`, `MEMDOOR_MODEL`, `MEMDOOR_VENDOR_HEADERS`, `MEMDOOR_MODEL_CONTEXT` | the built-in providers and the engine chosen at start | `gateway/providers/registry.go`, `vendor.go`; `docs/features/PROVIDERS.md` |
 | `MEMDOOR_SYSTEMONE_API_KEY` (or `TYPESAFE_API_KEY`), `MEMDOOR_SYSTEMONE_URL`, `MEMDOOR_SYSTEMONE_MODEL` | an explicit decision model; else the person's OpenRouter key judges | `gateway/decisions.go`; `docs/features/DECIDE.md` |
 | `MEMDOOR_NO_BROWSER` | never open a browser from `memdoor connect` and `memdoor mcp` | `cmd/cli/cmd/providers.go`, `mcp.go` |
-| `MEMDOOR_TELEMETRY_ENABLED` | WARN and above sent to memdoor.ai, off by default | `gateway/telemetry` |
+| `MEMDOOR_TELEMETRY_ENABLED` | WARN and above sent to the configured telemetry receiver, off by default | `gateway/telemetry` |
+| `MEMDOOR_TELEMETRY_URL` | telemetry receiver; default `http://localhost:18789/api/telemetry` | `gateway/telemetry` |
+| `MEMDOOR_ACCOUNT_URL` (`MEMDOOR_BILLING_URL` legacy alias) | account service; default `http://localhost:18790` | `cmd/cli/cmd/broker_client.go`, `gateway/broker_client.go` |
 
 `docs/SECURITY.md` lists every host the binary names; `gateway/egress_test.go`
 fails the build on a new one.

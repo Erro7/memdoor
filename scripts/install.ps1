@@ -1,6 +1,6 @@
 # Memdoor installer for Windows.
 #
-#   irm https://memdoor.ai/install.ps1 | iex
+#   $env:MEMDOOR_INSTALL_SOURCE='github'; irm https://github.com/guregodevo/memdoor/releases/latest/download/install.ps1 | iex
 #
 # Mirrors scripts/install.sh: download from /dl, VERIFY against the published
 # SHA256SUMS before anything executes, install user-local without admin
@@ -12,7 +12,15 @@
 
 $ErrorActionPreference = 'Stop'
 
-$Base      = 'https://memdoor.ai/dl'
+if ($env:MEMDOOR_INSTALL_SOURCE -eq 'github') {
+    $Repository = if ($env:MEMDOOR_GITHUB_REPOSITORY) { $env:MEMDOOR_GITHUB_REPOSITORY } else { 'guregodevo/memdoor' }
+    $Release = if ($env:MEMDOOR_GITHUB_RELEASE) { $env:MEMDOOR_GITHUB_RELEASE } else { 'latest' }
+    if ($Release -eq 'latest') { $Base = "https://github.com/$Repository/releases/latest/download" }
+    else { $Base = "https://github.com/$Repository/releases/download/$Release" }
+} else {
+    $DistributionBase = if ($env:MEMDOOR_DISTRIBUTION_URL) { $env:MEMDOOR_DISTRIBUTION_URL.TrimEnd('/') } else { 'http://localhost:18789' }
+    $Base = "$DistributionBase/dl"
+}
 $Asset     = 'memdoor-windows-amd64.exe'
 $InstallDir = Join-Path $env:LOCALAPPDATA 'Memdoor\bin'
 $Target    = Join-Path $InstallDir 'memdoor.exe'

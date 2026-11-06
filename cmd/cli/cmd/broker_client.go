@@ -15,14 +15,16 @@ import (
 // Client half of the broker: the CLI signs in and calls memdoor.ai with the
 // account token; it never holds a model vendor's key.
 
-const defaultBillingBase = "https://memdoor.ai/billing"
+const defaultBillingBase = "http://localhost:18790"
 
-// billingBase is where the billing service lives. Overridable for
-// self-hosted/staging via MEMDOOR_BILLING_URL.
+// billingBase is where the account service lives. MEMDOOR_ACCOUNT_URL is the
+// public name; MEMDOOR_BILLING_URL remains as a backwards-compatible alias.
 func billingBase() string {
 	// Only memdoor.ai or this machine: the account token goes there.
-	if v := os.Getenv("MEMDOOR_BILLING_URL"); v != "" && shared.AccountHostTrusted(v) {
-		return strings.TrimRight(v, "/")
+	for _, key := range []string{"MEMDOOR_ACCOUNT_URL", "MEMDOOR_BILLING_URL"} {
+		if v := strings.TrimSpace(os.Getenv(key)); v != "" && shared.AccountHostTrusted(v) {
+			return strings.TrimRight(v, "/")
+		}
 	}
 	return defaultBillingBase
 }
