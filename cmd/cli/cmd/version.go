@@ -34,6 +34,10 @@ var Commit = ""
 // git tree.
 var BuildDate = ""
 
+// ReleaseRepository is stamped by repository release workflows. An empty
+// value means a local source build, whose upgrade source stays local.
+var ReleaseRepository = ""
+
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the memdoor version, build commit, and build date",

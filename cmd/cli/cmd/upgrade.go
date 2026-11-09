@@ -203,7 +203,7 @@ func init() {
 func githubReleaseBaseURL() string {
 	repository := strings.TrimSpace(os.Getenv("MEMDOOR_GITHUB_REPOSITORY"))
 	if repository == "" {
-		repository = "Erro7/memdoor"
+		repository = strings.TrimSpace(ReleaseRepository)
 	}
 	release := strings.TrimSpace(os.Getenv("MEMDOOR_GITHUB_RELEASE"))
 	if release == "" || release == "latest" {
@@ -214,5 +214,8 @@ func githubReleaseBaseURL() string {
 
 func useGitHubReleases() bool {
 	source := strings.TrimSpace(os.Getenv("MEMDOOR_INSTALL_SOURCE"))
-	return source == "" || strings.EqualFold(source, "github")
+	if source != "" {
+		return strings.EqualFold(source, "github")
+	}
+	return strings.TrimSpace(ReleaseRepository) != ""
 }

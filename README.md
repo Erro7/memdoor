@@ -235,12 +235,13 @@ curl -fsSL https://github.com/OWNER/REPO/releases/download/v1.2.3/install.sh \
 On Windows PowerShell:
 
 ```powershell
-$env:MEMDOOR_GITHUB_REPOSITORY='Erro7/memdoor'
 irm https://github.com/Erro7/memdoor/releases/latest/download/install.ps1 | iex
 ```
 
-Keep `MEMDOOR_INSTALL_SOURCE=github` in the environment when running
-`memdoor upgrade`; it checks and installs from the same GitHub release source.
+Each repository's release workflow stamps its own repository into its binaries
+and generated installers. `memdoor upgrade` therefore returns to the same
+repository automatically. A source-tree `make install` remains local and uses
+`MEMDOOR_DISTRIBUTION_URL` rather than silently switching to GitHub.
 
 ## Documentation
 

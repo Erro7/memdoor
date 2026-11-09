@@ -40,8 +40,9 @@ case "${OS}-${ARCH}" in
         ;;
 esac
 
-if [ "${MEMDOOR_INSTALL_SOURCE:-github}" = "github" ]; then
-    GITHUB_REPOSITORY="${MEMDOOR_GITHUB_REPOSITORY:-Erro7/memdoor}"
+INSTALL_SOURCE="${MEMDOOR_INSTALL_SOURCE:-local}"
+if [ "$INSTALL_SOURCE" = "github" ]; then
+    GITHUB_REPOSITORY="${MEMDOOR_GITHUB_REPOSITORY:?MEMDOOR_GITHUB_REPOSITORY is required for GitHub installs}"
     GITHUB_RELEASE="${MEMDOOR_GITHUB_RELEASE:-latest}"
     if [ "$GITHUB_RELEASE" = "latest" ]; then
         ASSET_BASE="https://github.com/$GITHUB_REPOSITORY/releases/latest/download"

@@ -12,8 +12,9 @@
 
 $ErrorActionPreference = 'Stop'
 
-if (-not $env:MEMDOOR_INSTALL_SOURCE -or $env:MEMDOOR_INSTALL_SOURCE -eq 'github') {
-    $Repository = if ($env:MEMDOOR_GITHUB_REPOSITORY) { $env:MEMDOOR_GITHUB_REPOSITORY } else { 'Erro7/memdoor' }
+if ($env:MEMDOOR_INSTALL_SOURCE -eq 'github') {
+    if (-not $env:MEMDOOR_GITHUB_REPOSITORY) { throw 'MEMDOOR_GITHUB_REPOSITORY is required for GitHub installs' }
+    $Repository = $env:MEMDOOR_GITHUB_REPOSITORY
     $Release = if ($env:MEMDOOR_GITHUB_RELEASE) { $env:MEMDOOR_GITHUB_RELEASE } else { 'latest' }
     if ($Release -eq 'latest') { $Base = "https://github.com/$Repository/releases/latest/download" }
     else { $Base = "https://github.com/$Repository/releases/download/$Release" }

@@ -35,14 +35,39 @@ jobs:
         run: |
           set -eu
           mkdir -p dist
+          release_repository="$GITHUB_REPOSITORY"
           for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64; do
             os=${target%/*}; arch=${target#*/}; suffix=""
             [ "$os" = windows ] && suffix=.exe
             CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build \
-              -ldflags "-s -w -X memdoor/cmd/cli/cmd.Version=$RELEASE_TAG" \
+              -ldflags "-s -w -X memdoor/cmd/cli/cmd.Version=$RELEASE_TAG -X memdoor/cmd/cli/cmd.ReleaseRepository=$release_repository" \
               -o "dist/memdoor-${os}-${arch}${suffix}" ./cmd/cli
           done
-          cp scripts/install.sh scripts/install.ps1 dist/
+          python3 - "$release_repository" <<'PY'
+          from pathlib import Path
+          import sys
+
+          repository = sys.argv[1]
+          unix = Path("scripts/install.sh").read_text()
+          unix = unix.replace(
+              'INSTALL_SOURCE="${MEMDOOR_INSTALL_SOURCE:-local}"',
+              'INSTALL_SOURCE="${MEMDOOR_INSTALL_SOURCE:-github}"',
+          ).replace(
+              'GITHUB_REPOSITORY="${MEMDOOR_GITHUB_REPOSITORY:?MEMDOOR_GITHUB_REPOSITORY is required for GitHub installs}"',
+              f'GITHUB_REPOSITORY="${{MEMDOOR_GITHUB_REPOSITORY:-{repository}}}"',
+          )
+          Path("dist/install.sh").write_text(unix)
+
+          windows = Path("scripts/install.ps1").read_text()
+          windows = windows.replace(
+              "if ($env:MEMDOOR_INSTALL_SOURCE -eq 'github')",
+              "if (-not $env:MEMDOOR_INSTALL_SOURCE -or $env:MEMDOOR_INSTALL_SOURCE -eq 'github')",
+          ).replace(
+              "if (-not $env:MEMDOOR_GITHUB_REPOSITORY) { throw 'MEMDOOR_GITHUB_REPOSITORY is required for GitHub installs' }",
+              f"if (-not $env:MEMDOOR_GITHUB_REPOSITORY) {{ $env:MEMDOOR_GITHUB_REPOSITORY = '{repository}' }}",
+          )
+          Path("dist/install.ps1").write_text(windows)
+          PY
           printf '%s\n' "$RELEASE_TAG" > dist/VERSION
           (cd dist && sha256sum memdoor-* > SHA256SUMS)
       - name: Publish release assets
